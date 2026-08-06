@@ -1,0 +1,28 @@
+# simplecore bundle manifest
+#
+# One record per vendored file:
+#   <source path under .simplecore/>  <destination path in the plugin>  <mode>
+#
+# mode = copy      byte-identical in every plugin
+# mode = template  @PLUGIN@ is rewritten to the host plugin's name
+#
+# A `SKIP <plugin> <source path>` line excludes one file from one plugin, for
+# the cases where the shared version would be a downgrade.  Vendoring a file a
+# plugin does not source would leave it to rot unnoticed.
+#
+# Bump VERSION whenever any source file changes.  vendor.sh stamps the version
+# into each plugin's .simplecore.manifest, and `make core-verify` fails the
+# build when a plugin's copy no longer matches what the manifest recorded.
+VERSION 1
+
+core.vim              autoload/@PLUGIN@/core.vim  copy
+install-common.sh     install-common.sh           copy
+tests/vim_core.vim    tests/vim_core.vim          template
+tests/defcompile.vim  tests/defcompile.vim        copy
+tests/fake_daemon.py  tests/fake_daemon.py        copy
+
+# simpleclipboard installs two artifacts (the daemon and a cdylib Vim loads
+# with libcall) and stages the whole lib directory with a backup it can roll
+# back to.  The shared installer handles one binary and no rollback, so it
+# keeps its own.
+SKIP simpleclipboard install-common.sh
