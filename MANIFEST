@@ -5,6 +5,13 @@
 #
 # mode = copy      byte-identical in every plugin
 # mode = template  @PLUGIN@ is rewritten to the host plugin's name
+# mode = footer    @PLUGIN@ is rewritten, and the result replaces the *tail* of
+#                  the destination instead of the whole file.  Makefile.footer
+#                  is a fragment of a file the plugin owns, so it cannot be a
+#                  whole-file record; it was therefore vendored by hand and
+#                  hashed by nothing, and core-verify could not see it drift.
+#                  vendor.sh records it as `footer <lines> <sha256>  <path>`
+#                  and core-verify hashes that many trailing lines.
 #
 # A `SKIP <plugin> <source path>` line excludes one file from one plugin, for
 # the cases where the shared version would be a downgrade.  Vendoring a file a
@@ -13,13 +20,14 @@
 # Bump VERSION whenever any source file changes.  vendor.sh stamps the version
 # into each plugin's .simplecore.manifest, and `make core-verify` fails the
 # build when a plugin's copy no longer matches what the manifest recorded.
-VERSION 3
+VERSION 7
 
 core.vim              autoload/@PLUGIN@/core.vim  copy
 install-common.sh     install-common.sh           copy
 tests/vim_core.vim    tests/vim_core.vim          template
 tests/defcompile.vim  tests/defcompile.vim        copy
 tests/fake_daemon.py  tests/fake_daemon.py        copy
+Makefile.footer       Makefile                    footer
 
 # simpleclipboard installs two artifacts (the daemon and a cdylib Vim loads
 # with libcall) and stages the whole lib directory with a backup it can roll
