@@ -33,6 +33,24 @@ SIMPLECORE_SUITE="$fixture" "$root/vendor.sh" --check simpleprobe
 grep -Fx 'plugin-owned:' "$fixture/simpleprobe/Makefile" >/dev/null
 make -s -C "$fixture/simpleprobe" core-verify
 
+# A truncated manifest must not turn the integrity gate into a no-op. Missing
+# version/footer records and unknown record types used to verify successfully.
+cp "$fixture/simpleprobe/.simplecore.manifest" "$fixture/manifest.good"
+for mutation in empty version footer unknown; do
+	case "$mutation" in
+		empty) : >"$fixture/simpleprobe/.simplecore.manifest" ;;
+		version) sed '/^version /d' "$fixture/manifest.good" >"$fixture/simpleprobe/.simplecore.manifest" ;;
+		footer) sed '/^footer /d' "$fixture/manifest.good" >"$fixture/simpleprobe/.simplecore.manifest" ;;
+		unknown) cp "$fixture/manifest.good" "$fixture/simpleprobe/.simplecore.manifest"
+			printf 'unrecognized record\n' >>"$fixture/simpleprobe/.simplecore.manifest" ;;
+	esac
+	if make -s -C "$fixture/simpleprobe" core-verify; then
+		echo "test_bundle.sh: accepted $mutation manifest" >&2
+		exit 1
+	fi
+done
+cp "$fixture/manifest.good" "$fixture/simpleprobe/.simplecore.manifest"
+
 mkdir -p "$fixture/simplebad&name/.git"
 touch "$fixture/simplebad&name/.simplecore.manifest"
 if SIMPLECORE_SUITE="$fixture" "$root/vendor.sh" --check; then

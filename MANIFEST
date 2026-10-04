@@ -20,7 +20,7 @@
 # Bump VERSION whenever any source file changes.  vendor.sh stamps the version
 # into each plugin's .simplecore.manifest, and `make core-verify` fails the
 # build when a plugin's copy no longer matches what the manifest recorded.
-VERSION 7
+VERSION 8
 
 core.vim              autoload/@PLUGIN@/core.vim  copy
 install-common.sh     install-common.sh           copy
